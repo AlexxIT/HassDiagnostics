@@ -1,0 +1,17 @@
+{
+  "domain": "hass_diagnostics",
+  "name": "Hass Diagnostics",
+  "codeowners": [
+    "@AlexxIT"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "system_log"
+  ],
+  "documentation": "https://github.com/AlexxIT/HassDiagnostics",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/AlexxIT/HassDiagnostics/issues",
+  "requirements": [
+  ],
+  "version": "1.0.0"
+}
