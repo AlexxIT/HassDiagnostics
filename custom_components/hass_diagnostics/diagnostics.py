@@ -6,8 +6,4 @@ from homeassistant.core import HomeAssistant
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, config_entry: ConfigEntry
 ):
-    return {
-        "records": {
-            str(k): v.to_dict() for k, v in hass.data[SYSTEM_LOG].records.items()
-        }
-    }
+    return {"records": [i.to_dict() for i in hass.data[SYSTEM_LOG].records.values()]}

@@ -38,8 +38,8 @@ class SystemLogSensor(SensorEntity):
     def update(self, *args):
         self.records.clear()
 
-        for key, entry in self.system_log_records.items():
-            self.records.append(parse_log_entry(key, entry))
+        for entry in self.system_log_records.values():
+            self.records.append(parse_log_entry(entry))
 
         self._attr_native_value = len(self.records)
 
@@ -47,32 +47,39 @@ class SystemLogSensor(SensorEntity):
             self._async_write_ha_state()
 
 
-RE_NAME = re.compile(r"\b(components|custom_components)[/\\.]([0-9a-z_]+)")
+RE_CUSTOM_NAME = re.compile(r"\bcustom_components[/.]([0-9a-z_]+)")
+RE_NAME = re.compile(r"\bcomponents[/.]([0-9a-z_]+)")
 RE_CONNECTION = re.compile(r"(disconnected|not available)", flags=re.IGNORECASE)
 RE_DEPRECATED = re.compile(r"will stop working in Home Assistant.+?[0-9.]+")
+RE_SETUP = re.compile(r"Setup of (.+?) is taking over")
 
 
-def parse_log_entry(key: tuple, entry: LogEntry) -> dict:
+def parse_log_entry(entry: LogEntry) -> dict:
     record = {
+        "name": entry.name,
+        "level": entry.level,
+        "timestamp": entry.timestamp,
         "count": entry.count,
-        "level": entry.level.lower(),
+        "first_occurred": entry.first_occurred,
     }
 
-    if m := RE_NAME.search(str(key)):
-        record["name"] = m[0]
-        record["domain"] = m[2]
-    else:
-        record["name"] = key[0]
+    text = f"{entry.name}\n{entry.message}\n{entry.exception}"
+    if domains := (RE_CUSTOM_NAME.findall(text) or RE_NAME.findall(text)):
+        record["domains"] = sorted(set(domains))
 
     message = entry.message[0]
+    text = str(entry.message)
 
-    if "Cannot connect to host" in message:
+    if "Cannot connect to host" in text:
         record["category"] = "internet"
-    elif RE_CONNECTION.search(message):
+    elif RE_CONNECTION.search(text):
         record["category"] = "connection"
-    elif m := RE_DEPRECATED.search(message):
+    elif m := RE_DEPRECATED.search(text):
         record["category"] = "deprecated"
         message = "..." + m[0]
+    elif m := RE_SETUP.findall(text):
+        record["category"] = "performance"
+        record["domains"] = m
 
     if len(message) > 62:
         message = message[:59] + "..."
