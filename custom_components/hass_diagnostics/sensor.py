@@ -110,6 +110,9 @@ def parse_log_record(record: logging.LogRecord) -> dict:
         entry["category"] = "connection"
         short = m[0]
 
+    if record.name == "homeassistant.components.websocket_api.http.connection":
+        short = short.lstrip("[0123456789] ")
+
     if len(short) > 62:
         short = short[:59] + "..."
 
