@@ -8,12 +8,25 @@ from homeassistant.core import HomeAssistant
 
 from . import DOMAIN
 
+_LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(
     hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities
 ):
+    _LOGGER.debug("async_setup_entry sernsor")
+
+    system_log = SystemLogSensor()
+
+    # import log records from global system_log
+    if log := hass.data.get("system_log"):
+        for entry in log.records.values():
+            record = convert_log_entry_to_record(entry.to_dict())
+            system_log.emit(record)
+
     data = hass.data.setdefault(DOMAIN, {})
-    data["system_log"] = system_log = SystemLogSensor()
+    data["system_log"] = system_log
+
     async_add_entities([system_log], False)
 
 
@@ -123,3 +136,16 @@ def parse_log_record(record: logging.LogRecord) -> dict:
     entry["short"] = short.replace("\n", " ")
 
     return entry
+
+
+def convert_log_entry_to_record(entry: dict):
+    args = {
+        "name": entry["name"],
+        "levelname": entry["level"],
+        "created": entry["timestamp"],
+        "pathname": entry["source"][0],
+        "message": entry["message"][0],
+        "exc_info": entry["exception"] != "",
+        "exc_text": entry["exception"],
+    }
+    return type("LogRecord", (), args)()
