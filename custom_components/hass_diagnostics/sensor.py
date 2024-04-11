@@ -5,6 +5,7 @@ import traceback
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+
 from . import DOMAIN
 
 
@@ -29,8 +30,6 @@ class SystemLogSensor(SensorEntity):
     def __init__(self):
         self.records: dict[tuple, dict] = {}
 
-        self._attr_extra_state_attributes = {"records": self.records.values()}
-
         handler = logging.Handler(logging.WARNING)
         handler.emit = self.emit
         logging.root.addHandler(handler)
@@ -51,6 +50,11 @@ class SystemLogSensor(SensorEntity):
 
         if self.hass and self.entity_id:
             self._async_write_ha_state()
+
+    @property
+    def extra_state_attributes(self):
+        # fix JSON serialization
+        return {"records": list(self.records.values())}
 
 
 RE_CUSTOM_DOMAIN = re.compile(r"\bcustom_components[/.]([0-9a-z_]+)")
