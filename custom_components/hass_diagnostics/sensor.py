@@ -52,6 +52,8 @@ RE_NAME = re.compile(r"\bcomponents[/.]([0-9a-z_]+)")
 RE_CONNECTION = re.compile(r"(disconnected|not available)", flags=re.IGNORECASE)
 RE_DEPRECATED = re.compile(r"will stop working in Home Assistant.+?[0-9.]+")
 RE_SETUP = re.compile(r"Setup of (.+?) is taking over")
+# RE_ERROR = re.compile(r"\('(.+?)'\)")
+RE_PACKAGE = re.compile(r"/site-packages/([^/]+)")
 
 
 def parse_log_entry(entry: LogEntry) -> dict:
@@ -81,8 +83,12 @@ def parse_log_entry(entry: LogEntry) -> dict:
         record["category"] = "performance"
         record["domains"] = m
 
+    if m := RE_PACKAGE.search(entry.source[0]):
+        record["package"] = m[1]
+
     if len(message) > 62:
         message = message[:59] + "..."
+    message = message.replace("\n", " ")
 
     record["message"] = message
 
