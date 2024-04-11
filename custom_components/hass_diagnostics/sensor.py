@@ -8,36 +8,33 @@ from homeassistant.core import HomeAssistant
 
 from . import DOMAIN
 
-_LOGGER = logging.getLogger(__name__)
-
 
 async def async_setup_entry(
     hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities
 ):
-    _LOGGER.debug("async_setup_entry sernsor")
-
-    system_log = SystemLogSensor()
+    smart_log = SmartLog()
 
     # import log records from global system_log
-    if log := hass.data.get("system_log"):
-        for entry in log.records.values():
-            record = convert_log_entry_to_record(entry.to_dict())
-            system_log.emit(record)
+    if system_log := hass.data["system_log"]:
+        for entry in system_log.records.values():
+            entry = entry.to_dict()
+            record = convert_log_entry_to_record(entry)
+            smart_log.emit(record, entry["count"])
 
     data = hass.data.setdefault(DOMAIN, {})
-    data["system_log"] = system_log
+    data["smart_log"] = smart_log
 
-    async_add_entities([system_log], False)
+    async_add_entities([smart_log], False)
 
 
-class SystemLogSensor(SensorEntity):
+class SmartLog(SensorEntity):
     _attr_icon = "mdi:math-log"
-    _attr_name = "System Log"
+    _attr_name = "Smart Log"
     _attr_native_value = 0
     _attr_native_unit_of_measurement = "items"
     _attr_should_poll = False
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_unique_id = "system_log"
+    _attr_unique_id = "smart_log"
     _unrecorded_attributes = {"records"}
 
     def __init__(self):
@@ -47,20 +44,16 @@ class SystemLogSensor(SensorEntity):
         handler.emit = self.emit
         logging.root.addHandler(handler)
 
-    def emit(self, record: logging.LogRecord):
+    def emit(self, record: logging.LogRecord, count: int = 1):
         entry = parse_log_record(record)
         key = (entry.get("domain"), entry.get("package"), entry.get("category"))
         if record := self.records.get(key):
-            record["count"] += 1
+            record["count"] += count
         else:
-            entry["count"] = 1
+            entry["count"] = count
             self.records[key] = entry
 
-        self.internal_update()
-
-    def internal_update(self):
-        self._attr_native_value = len(self.records)
-
+        self._attr_native_value += count
         if self.hass and self.entity_id:
             self._async_write_ha_state()
 

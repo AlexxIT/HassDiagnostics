@@ -10,11 +10,11 @@ async def async_get_config_entry_diagnostics(
     info = {}
 
     # internal system_log
-    if log := hass.data.get(DOMAIN, {}).get("system_log"):
-        info["system_log"] = [i for i in log.records.values()]
+    if smart_log := hass.data.get(DOMAIN, {}).get("smart_log"):
+        info["smart_log"] = [i for i in smart_log.records.values()]
 
     # global system_log
-    if log := hass.data.get("system_log"):
-        info["hass_system_log"] = [i.to_dict() for i in log.records.values()]
+    if system_log := hass.data["system_log"]:
+        info["system_log"] = [i.to_dict() for i in system_log.records.values()]
 
     return info

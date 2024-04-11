@@ -5,7 +5,9 @@
     "@AlexxIT"
   ],
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": [
+    "system_log"
+  ],
   "documentation": "https://github.com/AlexxIT/HassDiagnostics",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/AlexxIT/HassDiagnostics/issues",
