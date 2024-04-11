@@ -82,8 +82,10 @@ def parse_log_record(record: logging.LogRecord) -> dict:
     if record.exc_info:
         text += record.exc_text or str(traceback.format_exception(*record.exc_info))
 
-    if m := (RE_CUSTOM_DOMAIN.search(text) or RE_DOMAIN.search(text)):
+    if m := RE_CUSTOM_DOMAIN.search(text):
         entry["domain"] = m[1]
+    elif m := RE_DOMAIN.findall(text):
+        entry["domain"] = m[-1]
 
     # package from pathname
     if m := RE_PACKAGE.search(record.pathname):
