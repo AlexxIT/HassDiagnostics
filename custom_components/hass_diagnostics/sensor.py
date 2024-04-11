@@ -1,18 +1,19 @@
 import logging
 import re
+import traceback
 
-from aioesphomeapi import SensorStateClass
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.components.system_log import DOMAIN as SYSTEM_LOG, LogEntry
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from . import DOMAIN
 
 
 async def async_setup_entry(
     hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities
 ):
-    records = hass.data[SYSTEM_LOG].records
-    async_add_entities([SystemLogSensor(records)], False)
+    data = hass.data.setdefault(DOMAIN, {})
+    data["system_log"] = system_log = SystemLogSensor()
+    async_add_entities([system_log], False)
 
 
 class SystemLogSensor(SensorEntity):
@@ -22,74 +23,94 @@ class SystemLogSensor(SensorEntity):
     _attr_native_unit_of_measurement = "items"
     _attr_should_poll = False
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_unique_id = SYSTEM_LOG
+    _attr_unique_id = "system_log"
     _unrecorded_attributes = {"records"}
 
-    def __init__(self, records: dict):
-        self.system_log_records = records
-        self.records = []
+    def __init__(self):
+        self.records: dict[tuple, dict] = {}
 
-        self._attr_extra_state_attributes = {"records": self.records}
+        self._attr_extra_state_attributes = {"records": self.records.values()}
 
         handler = logging.Handler(logging.WARNING)
-        handler.emit = self.update
+        handler.emit = self.emit
         logging.root.addHandler(handler)
 
-    def update(self, *args):
-        self.records.clear()
+    def emit(self, record: logging.LogRecord):
+        entry = parse_log_record(record)
+        key = (entry.get("domain"), entry.get("package"), entry.get("category"))
+        if record := self.records.get(key):
+            record["count"] += 1
+        else:
+            entry["count"] = 1
+            self.records[key] = entry
 
-        for entry in self.system_log_records.values():
-            self.records.append(parse_log_entry(entry))
+        self.internal_update()
 
+    def internal_update(self):
         self._attr_native_value = len(self.records)
 
         if self.hass and self.entity_id:
             self._async_write_ha_state()
 
 
-RE_CUSTOM_NAME = re.compile(r"\bcustom_components[/.]([0-9a-z_]+)")
-RE_NAME = re.compile(r"\bcomponents[/.]([0-9a-z_]+)")
+RE_CUSTOM_DOMAIN = re.compile(r"\bcustom_components[/.]([0-9a-z_]+)")
+RE_DOMAIN = re.compile(r"\bcomponents[/.]([0-9a-z_]+)")
 RE_CONNECTION = re.compile(r"(disconnected|not available)", flags=re.IGNORECASE)
 RE_DEPRECATED = re.compile(r"will stop working in Home Assistant.+?[0-9.]+")
 RE_SETUP = re.compile(r"Setup of (.+?) is taking over")
 # RE_ERROR = re.compile(r"\('(.+?)'\)")
 RE_PACKAGE = re.compile(r"/site-packages/([^/]+)")
+RE_TEMPLATE = re.compile(r"Template<template=\((.+?)\) renders=", flags=re.DOTALL)
+RE_CONNECT_TO_HOST = re.compile(r"Cannot connect to host [^ ]+")
+RE_CONNECT = re.compile(r"\b(connect|connection|socket)\b", flags=re.IGNORECASE)
+RE_HOST = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
 
 
-def parse_log_entry(entry: LogEntry) -> dict:
-    record = {
-        "name": entry.name,
-        "level": entry.level,
-        "timestamp": entry.timestamp,
-        "count": entry.count,
-        "first_occurred": entry.first_occurred,
+def parse_log_record(record: logging.LogRecord) -> dict:
+    message = record.message or record.getMessage()
+
+    # base info
+    entry = {
+        "name": record.name,
+        "level": record.levelname,
+        "message": message,
+        "timestamp": record.created,
     }
 
-    text = f"{entry.name}\n{entry.message}\n{entry.exception}"
-    if domains := (RE_CUSTOM_NAME.findall(text) or RE_NAME.findall(text)):
-        record["domains"] = sorted(set(domains))
+    # domain from name, message and exception
+    text = f"{record.name}\n{message}\n"
+    if record.exc_info:
+        text += record.exc_text or str(traceback.format_exception(*record.exc_info))
 
-    message = entry.message[0]
-    text = str(entry.message)
+    if m := (RE_CUSTOM_DOMAIN.search(text) or RE_DOMAIN.search(text)):
+        entry["domain"] = m[1]
 
-    if "Cannot connect to host" in text:
-        record["category"] = "internet"
-    elif RE_CONNECTION.search(text):
-        record["category"] = "connection"
-    elif m := RE_DEPRECATED.search(text):
-        record["category"] = "deprecated"
-        message = "..." + m[0]
-    elif m := RE_SETUP.findall(text):
-        record["category"] = "performance"
-        record["domains"] = m
+    # package from pathname
+    if m := RE_PACKAGE.search(record.pathname):
+        entry["package"] = m[1]
 
-    if m := RE_PACKAGE.search(entry.source[0]):
-        record["package"] = m[1]
+    # short and category
+    short = message
 
-    if len(message) > 62:
-        message = message[:59] + "..."
-    message = message.replace("\n", " ")
+    if RE_CONNECT.search(message) and (m := RE_HOST.search(message)):
+        entry["category"] = "connection"
+        short = "Error connect to " + m[0]
+    elif m := RE_DEPRECATED.search(message):
+        entry["category"] = "deprecated"
+        short = "..." + m[0]
+    elif m := RE_SETUP.search(message):
+        entry["category"] = "performance"
+        entry["domain"] = m[1]
+    elif m := RE_TEMPLATE.search(message):
+        entry["category"] = "template"
+        short = m[1]
+    elif m := RE_CONNECT_TO_HOST.search(text):
+        entry["category"] = "connection"
+        short = m[0]
 
-    record["message"] = message
+    if len(short) > 62:
+        short = short[:59] + "..."
 
-    return record
+    entry["short"] = short.replace("\n", " ")
+
+    return entry
