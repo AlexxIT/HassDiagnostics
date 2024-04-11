@@ -46,7 +46,12 @@ class SmartLog(SensorEntity):
 
     def emit(self, record: logging.LogRecord, count: int = 1):
         entry = parse_log_record(record)
-        key = (entry.get("domain"), entry.get("package"), entry.get("category"))
+        key = (
+            entry.get("domain"),
+            entry.get("package"),
+            entry.get("category"),
+            entry.get("host"),
+        )
         if record := self.records.get(key):
             record["count"] += count
         else:
@@ -71,9 +76,9 @@ RE_SETUP = re.compile(r"Setup of (.+?) is taking over")
 # RE_ERROR = re.compile(r"\('(.+?)'\)")
 RE_PACKAGE = re.compile(r"/site-packages/([^/]+)")
 RE_TEMPLATE = re.compile(r"Template<template=\((.+?)\) renders=", flags=re.DOTALL)
-RE_CONNECT_TO_HOST = re.compile(r"Cannot connect to host [^ ]+")
+RE_CONNECT_TO_HOST = re.compile(r"Cannot connect to host ([^ :]+)")
 RE_CONNECT = re.compile(r"\b(connect|connection|socket)\b", flags=re.IGNORECASE)
-RE_HOST = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
+RE_IP = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
 
 
 def parse_log_record(record: logging.LogRecord) -> dict:
@@ -104,7 +109,8 @@ def parse_log_record(record: logging.LogRecord) -> dict:
     # short and category
     short = message
 
-    if RE_CONNECT.search(message) and (m := RE_HOST.search(message)):
+    if RE_CONNECT.search(message) and (m := RE_IP.search(message)):
+        entry["host"] = m[0]
         entry["category"] = "connection"
         short = "Error connect to " + m[0]
     elif m := RE_DEPRECATED.search(message):
@@ -117,6 +123,7 @@ def parse_log_record(record: logging.LogRecord) -> dict:
         entry["category"] = "template"
         short = m[1]
     elif m := RE_CONNECT_TO_HOST.search(text):
+        entry["host"] = m[1]
         entry["category"] = "connection"
         short = m[0]
 

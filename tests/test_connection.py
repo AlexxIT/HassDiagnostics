@@ -18,9 +18,10 @@ def test_aiohttp_server():
     assert parse_log_entry(entry) == {
         "category": "connection",
         "domain": "media_player",
+        "host": "graph.facebook.com",
         "name": "aiohttp.server",
         "package": "aiohttp",
-        "short": "Cannot connect to host graph.facebook.com:443",
+        "short": "Cannot connect to host graph.facebook.com",
     }
 
 
@@ -40,6 +41,7 @@ def test_yandex_smart_home():
     assert parse_log_entry(entry) == {
         "category": "connection",
         "domain": "yandex_smart_home",
+        "host": "192.168.1.123",
         "name": "custom_components.yandex_smart_home.smart_home",
         "short": "Error connect to 192.168.1.123",
     }
@@ -63,6 +65,7 @@ def test_pychromecast():
     }
     assert parse_log_entry(entry) == {
         "category": "connection",
+        "host": "192.168.1.123",
         "name": "pychromecast.socket_client",
         "package": "pychromecast",
         "short": "Error connect to 192.168.1.123",
@@ -83,6 +86,7 @@ def test_pychromecast():
     }
     assert parse_log_entry(entry) == {
         "category": "connection",
+        "host": "192.168.1.123",
         "name": "pychromecast.socket_client",
         "package": "pychromecast",
         "short": "Error connect to 192.168.1.123",
@@ -105,6 +109,7 @@ def test_pychromecast():
     }
     assert parse_log_entry(entry) == {
         "category": "connection",
+        "host": "192.168.1.123",
         "name": "pychromecast.socket_client",
         "package": "pychromecast",
         "short": "Error connect to 192.168.1.123",
@@ -127,6 +132,7 @@ def test_pychromecast():
     }
     assert parse_log_entry(entry) == {
         "category": "connection",
+        "host": "192.168.1.123",
         "name": "pychromecast.socket_client",
         "package": "pychromecast",
         "short": "Error connect to 192.168.1.123",

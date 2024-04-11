@@ -10,5 +10,5 @@ def parse_log_entry(entry: dict) -> dict:
     return {
         k: v
         for k, v in p.items()
-        if k in ("name", "category", "domain", "package", "short")
+        if k in ("category", "domain", "host", "name", "package", "short")
     }
