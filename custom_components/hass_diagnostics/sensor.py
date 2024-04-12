@@ -77,7 +77,9 @@ RE_SETUP = re.compile(r"Setup of (.+?) is taking over")
 RE_PACKAGE = re.compile(r"/site-packages/([^/]+)")
 RE_TEMPLATE = re.compile(r"Template<template=\((.+?)\) renders=", flags=re.DOTALL)
 RE_CONNECT_TO_HOST = re.compile(r"Cannot connect to host ([^ :]+)")
-RE_CONNECT = re.compile(r"\b(connect|connection|socket|timed out)\b", flags=re.IGNORECASE)
+RE_CONNECT = re.compile(
+    r"\b(connect|connection|disconnected|socket|timed out)\b", flags=re.IGNORECASE
+)
 RE_IP = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
 RE_LAST_LINE = re.compile(r"\n\S+Error: ([^\n]+)\n$")
 
@@ -109,9 +111,8 @@ def parse_log_record(record: logging.LogRecord) -> dict:
 
     # short and category
     if RE_CONNECT.search(message) and (m := RE_IP.search(message)):
-        entry["host"] = m[0]
         entry["category"] = "connection"
-        short = "Error connect to " + m[0]
+        entry["host"] = m[0]
     elif m := RE_DEPRECATED.search(message):
         entry["category"] = "deprecated"
         short = "..." + m[0]
@@ -124,13 +125,11 @@ def parse_log_record(record: logging.LogRecord) -> dict:
     elif m := RE_LAST_LINE.search(text):
         short = m[1]
         if m := RE_CONNECT_TO_HOST.search(short):
-            entry["host"] = m[1]
             entry["category"] = "connection"
-            short = m[0]
+            entry["host"] = m[1]
         elif RE_CONNECT.search(short) and (m := RE_IP.search(short)):
             entry["host"] = m[0]
             entry["category"] = "connection"
-            short = "Error connect to " + m[0]
 
     if record.name == "homeassistant.components.websocket_api.http.connection":
         short = short.lstrip("[0123456789] ")

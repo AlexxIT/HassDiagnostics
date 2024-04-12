@@ -21,7 +21,7 @@ def test_aiohttp_server():
         "host": "graph.facebook.com",
         "name": "aiohttp.server",
         "package": "aiohttp",
-        "short": "Cannot connect to host graph.facebook.com",
+        "short": "Cannot connect to host graph.facebook.com:443 ssl:default [...",
     }
 
 
@@ -43,7 +43,7 @@ def test_yandex_smart_home():
         "domain": "yandex_smart_home",
         "host": "192.168.1.123",
         "name": "custom_components.yandex_smart_home.smart_home",
-        "short": "Error connect to 192.168.1.123",
+        "short": "INTERNAL_ERROR: Failed to execute action for instance on (d...",
     }
 
 
@@ -68,7 +68,7 @@ def test_pychromecast():
         "host": "192.168.1.123",
         "name": "pychromecast.socket_client",
         "package": "pychromecast",
-        "short": "Error connect to 192.168.1.123",
+        "short": "[MIBOX4(192.168.1.123):8009] Heartbeat timeout, resetting c...",
     }
 
     entry = {
@@ -89,7 +89,7 @@ def test_pychromecast():
         "host": "192.168.1.123",
         "name": "pychromecast.socket_client",
         "package": "pychromecast",
-        "short": "Error connect to 192.168.1.123",
+        "short": "[All(192.168.1.123):32156] Error reading from socket.",
     }
 
     entry = {
@@ -112,7 +112,7 @@ def test_pychromecast():
         "host": "192.168.1.123",
         "name": "pychromecast.socket_client",
         "package": "pychromecast",
-        "short": "Error connect to 192.168.1.123",
+        "short": "[All(192.168.1.123):32156] Error communicating with socket,...",
     }
 
     entry = {
@@ -135,7 +135,7 @@ def test_pychromecast():
         "host": "192.168.1.123",
         "name": "pychromecast.socket_client",
         "package": "pychromecast",
-        "short": "Error connect to 192.168.1.123",
+        "short": "[All(192.168.1.123):32156] Failed to connect to service Hos...",
     }
 
 
@@ -158,5 +158,25 @@ def test_service_call_yeelight():
         "domain": "adaptive_lighting",
         "host": "192.168.1.123",
         "name": "homeassistant.core",
-        "short": "Error connect to 192.168.1.123",
+        "short": "Timed out when calling async_set_colortemp for bulb Yeeligh...",
+    }
+
+
+def test_disconnected_from():
+    entry = {
+        "name": "homeassistant.components.androidtv_remote",
+        "message": ["Disconnected from MIBOX4 at 192.168.1.123"],
+        "level": "WARNING",
+        "source": ["components/androidtv_remote/__init__.py", 39],
+        "timestamp": 1712885169.0774295,
+        "exception": "",
+        "count": 5,
+        "first_occurred": 1712849441.482956,
+    }
+    assert parse_log_entry(entry) == {
+        "category": "connection",
+        "domain": "androidtv_remote",
+        "host": "192.168.1.123",
+        "name": "homeassistant.components.androidtv_remote",
+        "short": "Disconnected from MIBOX4 at 192.168.1.123",
     }
