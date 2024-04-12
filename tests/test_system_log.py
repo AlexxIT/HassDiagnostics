@@ -57,7 +57,7 @@ def test_miio():
     assert parse_log_entry(entry) == {
         "domain": "xiaomi_miio",
         "name": "homeassistant.components.xiaomi_miio",
-        "short": "byte indices must be integers or slices, not str",
+        "short": "TypeError: byte indices must be integers or slices, not str",
     }
 
 
@@ -96,7 +96,7 @@ def test_zeroconf():
     assert parse_log_entry(entry) == {
         "name": "zeroconf",
         "package": "zeroconf",
-        "short": "[Errno 101] Network unreachable",
+        "short": "OSError: [Errno 101] Network unreachable",
     }
 
 
@@ -160,7 +160,7 @@ def test_websocket_philips():
     assert parse_log_entry(entry) == {
         "domain": "philips_js",
         "name": "homeassistant.components.websocket_api.http.connection",
-        "short": "TV is not available",
+        "short": "HomeAssistantError: TV is not available",
     }
 
 
@@ -180,7 +180,7 @@ def test_service_call_philips():
     assert parse_log_entry(entry) == {
         "domain": "philips_js",
         "name": "homeassistant.core",
-        "short": "TV is not available",
+        "short": "HomeAssistantError: TV is not available",
     }
 
 
@@ -216,7 +216,7 @@ def test_telegram_bad_gateway():
     assert parse_log_entry(entry) == {
         "name": "telegram.ext.Updater",
         "package": "telegram",
-        "short": "Bad Gateway",
+        "short": "NetworkError: Bad Gateway",
     }
 
 
@@ -238,4 +238,22 @@ def test_mikrotik():
         "host": "192.168.88.1",
         "name": "custom_components.mikrotik_router.coordinator",
         "short": "Mikrotik 192.168.88.1 duplicate Mangle rule change-mss,tcp:...",
+    }
+
+
+def test_setup_matrix():
+    entry = {
+        "name": "homeassistant.setup",
+        "message": ["Error during setup of component matrix"],
+        "level": "ERROR",
+        "source": ["setup.py", 398],
+        "timestamp": 1712919752.8565288,
+        "exception": 'Traceback (most recent call last):\n  File "/usr/src/homeassistant/homeassistant/setup.py", line 398, in _async_setup_component\n    result = await task\n             ^^^^^^^^^^\n  File "/usr/src/homeassistant/homeassistant/components/matrix/__init__.py", line 138, in async_setup\n    config = config[DOMAIN]\n             ~~~~~~^^^^^^^^\nKeyError: \'matrix\'\n',
+        "count": 1,
+        "first_occurred": 1712919752.8565288,
+    }
+    assert parse_log_entry(entry) == {
+        "domain": "matrix",
+        "name": "homeassistant.setup",
+        "short": "KeyError: 'matrix'",
     }

@@ -158,7 +158,7 @@ def test_service_call_yeelight():
         "domain": "adaptive_lighting",
         "host": "192.168.1.123",
         "name": "homeassistant.core",
-        "short": "Timed out when calling async_set_colortemp for bulb Yeeligh...",
+        "short": "HomeAssistantError: Timed out when calling async_set_colort...",
     }
 
 

@@ -15,7 +15,7 @@ RE_CONNECT = re.compile(
     r"\b(connect|connection|disconnected|socket|timed out)\b", flags=re.IGNORECASE
 )
 RE_LOGIN = re.compile(r"^Login attempt or request [^(]+\(([^)]+)")
-RE_LAST_LINE = re.compile(r"\n\S+Error: ([^\n]+)\n$")
+RE_LAST_LINE = re.compile(r"([A-Za-z]+Error: [^\n]+)\n$")
 
 
 def parse_log_record(record: LogRecord) -> dict:
