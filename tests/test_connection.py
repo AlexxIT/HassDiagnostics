@@ -21,7 +21,7 @@ def test_aiohttp_server():
         "host": "graph.facebook.com",
         "name": "aiohttp.server",
         "package": "aiohttp",
-        "short": "Cannot connect to host graph.facebook.com:443 ssl:default [...",
+        "short": "Error handling request",
     }
 
 
@@ -179,4 +179,26 @@ def test_disconnected_from():
         "host": "192.168.1.123",
         "name": "homeassistant.components.androidtv_remote",
         "short": "Disconnected from MIBOX4 at 192.168.1.123",
+    }
+
+
+def test_sonoff_cloud():
+    entry = {
+        "name": "custom_components.sonoff.core.ewelink.cloud",
+        "message": [
+            "Cloud WS Connection error: Cannot connect to host eu-dispa.coolkit.cc:443 ssl:default [Connect call failed ('18.159.168.104', 443)]"
+        ],
+        "level": "WARNING",
+        "source": ["custom_components/sonoff/core/ewelink/cloud.py", 360],
+        "timestamp": 1712896573.0078208,
+        "exception": "",
+        "count": 1,
+        "first_occurred": 1712896573.0078208,
+    }
+    assert parse_log_entry(entry) == {
+        "category": "connection",
+        "domain": "sonoff",
+        "host": "eu-dispa.coolkit.cc",
+        "name": "custom_components.sonoff.core.ewelink.cloud",
+        "short": "Cloud WS Connection error: Cannot connect to host eu-dispa....",
     }

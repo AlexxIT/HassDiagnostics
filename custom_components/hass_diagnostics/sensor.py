@@ -117,7 +117,10 @@ def parse_log_record(record: logging.LogRecord) -> dict:
         entry["package"] = m[1]
 
     # short and category
-    if RE_CONNECT.search(message) and (m := RE_IP.search(message)):
+    if m := RE_CONNECT_TO_HOST.search(text):
+        entry["category"] = "connection"
+        entry["host"] = m[1]
+    elif RE_CONNECT.search(message) and (m := RE_IP.search(message)):
         entry["category"] = "connection"
         entry["host"] = m[0]
     elif m := RE_DEPRECATED.search(message):
@@ -131,12 +134,9 @@ def parse_log_record(record: logging.LogRecord) -> dict:
         short = m[1]
     elif m := RE_LAST_LINE.search(text):
         short = m[1]
-        if m := RE_CONNECT_TO_HOST.search(short):
+        if RE_CONNECT.search(short) and (m := RE_IP.search(short)):
             entry["category"] = "connection"
-            entry["host"] = m[1]
-        elif RE_CONNECT.search(short) and (m := RE_IP.search(short)):
             entry["host"] = m[0]
-            entry["category"] = "connection"
 
     if record.name == "homeassistant.components.websocket_api.http.connection":
         short = short.lstrip("[0123456789] ")
