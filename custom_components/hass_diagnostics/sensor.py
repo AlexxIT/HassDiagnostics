@@ -88,6 +88,7 @@ RE_CONNECT = re.compile(
     r"\b(connect|connection|disconnected|socket|timed out)\b", flags=re.IGNORECASE
 )
 RE_IP = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
+RE_LOGIN = re.compile(r"^Login attempt or request [^(]+\(([^)]+)")
 RE_LAST_LINE = re.compile(r"\n\S+Error: ([^\n]+)\n$")
 
 
@@ -135,6 +136,9 @@ def parse_log_record(record: logging.LogRecord) -> dict:
     elif m := RE_TEMPLATE.search(message):
         entry["category"] = "template"
         short = m[1]
+    elif m := RE_LOGIN.search(message):
+        entry["category"] = "login"
+        entry["host"] = m[1]
     elif m := RE_LAST_LINE.search(text):
         short = m[1]
         if RE_CONNECT.search(short) and (m := RE_IP.search(short)):
