@@ -6,6 +6,7 @@ RE_CUSTOM_DOMAIN = re.compile(r"\bcustom_components[/.]([0-9a-z_]+)")
 RE_DOMAIN = re.compile(r"\bcomponents[/.]([0-9a-z_]+)")
 RE_DEPRECATED = re.compile(r"\b(is deprecated|is a deprecated|will stop working)\b")
 RE_PACKAGE = re.compile(r"/site-packages/([^/]+)")
+RE_REQUIREMENTS = re.compile(r"Requirements for ([^ ]+) not found.+")
 RE_TEMPLATE = re.compile(r"Template<template=\((.+?)\) renders=", flags=re.DOTALL)
 RE_CONNECT_TO_HOST = re.compile(r"Cannot connect to host ([^ :]+)")
 RE_CONNECT = re.compile(
@@ -75,6 +76,9 @@ def parse_log_record(record: LogRecord) -> dict:
         entry["category"] = "connection"
     elif RE_DEPRECATED.search(message):
         entry["category"] = "deprecated"
+    elif m := RE_REQUIREMENTS.search(text):
+        entry["domain"] = m[1]
+        short = m[0]
     elif m := RE_TEMPLATE.search(message):
         entry["category"] = "template"
         short = m[1]

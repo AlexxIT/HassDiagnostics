@@ -313,3 +313,21 @@ def test_xiaomi_miot():
         "name": "homeassistant.components.sensor",
         "short": "Platform xiaomi_miot does not generate unique IDs. ID xxx-m...",
     }
+
+
+def test_requirements():
+    entry = {
+        "name": "homeassistant",
+        "message": ["Error doing job: Task exception was never retrieved"],
+        "level": "ERROR",
+        "source": ["requirements.py", 318],
+        "timestamp": 1712919903.9594476,
+        "exception": 'Traceback (most recent call last):\n  File "/usr/src/homeassistant/homeassistant/helpers/discovery_flow.py", line 107, in _async_start\n    await gather_with_limited_concurrency(FLOW_INIT_LIMIT, *init_coros)\n  File "/usr/src/homeassistant/homeassistant/util/async_.py", line 207, in gather_with_limited_concurrency\n    return await gather(\n           ^^^^^^^^^^^^^\n  File "/usr/src/homeassistant/homeassistant/util/async_.py", line 205, in sem_task\n    return await task\n           ^^^^^^^^^^\n  File "/usr/src/homeassistant/homeassistant/config_entries.py", line 1155, in async_init\n    flow, result = await self._async_init(flow_id, handler, context, data)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/src/homeassistant/homeassistant/config_entries.py", line 1175, in _async_init\n    flow = await self.async_create_flow(handler, context=context, data=data)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/src/homeassistant/homeassistant/config_entries.py", line 1312, in async_create_flow\n    handler = await _async_get_flow_handler(\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/src/homeassistant/homeassistant/config_entries.py", line 2608, in _async_get_flow_handler\n    await _load_integration(hass, domain, hass_config)\n  File "/usr/src/homeassistant/homeassistant/config_entries.py", line 2585, in _load_integration\n    await async_process_deps_reqs(hass, hass_config, integration)\n  File "/usr/src/homeassistant/homeassistant/setup.py", line 551, in async_process_deps_reqs\n    await requirements.async_get_integration_with_requirements(\n  File "/usr/src/homeassistant/homeassistant/requirements.py", line 53, in async_get_integration_with_requirements\n    return await manager.async_get_integration_with_requirements(domain)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/src/homeassistant/homeassistant/requirements.py", line 176, in async_get_integration_with_requirements\n    await self._async_process_integration(integration, done)\n  File "/usr/src/homeassistant/homeassistant/requirements.py", line 193, in _async_process_integration\n    await self.async_process_requirements(\n  File "/usr/src/homeassistant/homeassistant/requirements.py", line 280, in async_process_requirements\n    await self._async_process_requirements(name, missing)\n  File "/usr/src/homeassistant/homeassistant/requirements.py", line 318, in _async_process_requirements\n    raise RequirementsNotFound(name, list(failures))\nhomeassistant.requirements.RequirementsNotFound: Requirements for tuya_ble not found: [\'pycountry==22.3.5\'].\n',
+        "count": 1,
+        "first_occurred": 1712919903.9594476,
+    }
+    assert parse_log_entry(entry) == {
+        "domain": "tuya_ble",
+        "name": "homeassistant",
+        "short": "Requirements for tuya_ble not found: ['pycountry==22.3.5'].",
+    }
