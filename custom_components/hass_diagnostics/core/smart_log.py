@@ -13,7 +13,6 @@ RE_CONNECT_TO_HOST = re.compile(r"Cannot connect to host ([^ :]+)")
 RE_CONNECT = re.compile(
     r"\b(connect|connection|disconnected|socket|timed out)\b", flags=re.IGNORECASE
 )
-RE_IP = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
 RE_LOGIN = re.compile(r"^Login attempt or request [^(]+\(([^)]+)")
 RE_LAST_LINE = re.compile(r"\n\S+Error: ([^\n]+)\n$")
 
@@ -43,13 +42,15 @@ def parse_log_record(record: LogRecord) -> dict:
     if m := RE_PACKAGE.search(record.pathname):
         entry["package"] = m[1]
 
+    if host := ip_search(message):
+        entry["host"] = host
+
     # short and category
     if m := RE_CONNECT_TO_HOST.search(text):
         entry["category"] = "connection"
         entry["host"] = m[1]
-    elif RE_CONNECT.search(message) and (m := RE_IP.search(message)):
+    elif RE_CONNECT.search(message) and entry.get("host"):
         entry["category"] = "connection"
-        entry["host"] = m[0]
     elif m := RE_DEPRECATED.search(message):
         entry["category"] = "deprecated"
         short = "..." + m[0]
@@ -67,9 +68,10 @@ def parse_log_record(record: LogRecord) -> dict:
         entry["host"] = m[1]
     elif m := RE_LAST_LINE.search(text):
         short = m[1]
-        if RE_CONNECT.search(short) and (m := RE_IP.search(short)):
+        if host := ip_search(short):
+            entry["host"] = host
+        if RE_CONNECT.search(short) and entry.get("host"):
             entry["category"] = "connection"
-            entry["host"] = m[0]
 
     if record.name == "homeassistant.components.websocket_api.http.connection":
         short = short.lstrip("[0123456789] ")
@@ -80,6 +82,18 @@ def parse_log_record(record: LogRecord) -> dict:
     entry["short"] = short.replace("\n", " ")
 
     return entry
+
+
+RE_IP = re.compile(r"\b[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\b")
+
+
+def ip_search(text: str) -> str | None:
+    m: list[str] = RE_IP.findall(text)
+    for host in m:
+        a, b, c, d = host.split(".")
+        if 0 < int(a) < 255 and int(b) <= 255 and int(c) <= 255 and 0 < int(d) < 255:
+            return host
+    return None
 
 
 def convert_log_entry_to_record(entry: dict):

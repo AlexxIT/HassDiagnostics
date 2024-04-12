@@ -218,3 +218,24 @@ def test_telegram_bad_gateway():
         "package": "telegram",
         "short": "Bad Gateway",
     }
+
+
+def test_mikrotik():
+    entry = {
+        "name": "custom_components.mikrotik_router.coordinator",
+        "message": [
+            "Mikrotik 192.168.88.1 duplicate Mangle rule change-mss,tcp:any, entity will be unavailable."
+        ],
+        "level": "ERROR",
+        "source": ["custom_components/mikrotik_router/coordinator.py", 1131],
+        "timestamp": 1712919756.6597452,
+        "exception": "",
+        "count": 2,
+        "first_occurred": 1712919756.6596253,
+    }
+    assert parse_log_entry(entry) == {
+        "domain": "mikrotik_router",
+        "host": "192.168.88.1",
+        "name": "custom_components.mikrotik_router.coordinator",
+        "short": "Mikrotik 192.168.88.1 duplicate Mangle rule change-mss,tcp:...",
+    }
