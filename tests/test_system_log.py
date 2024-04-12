@@ -57,7 +57,7 @@ def test_miio():
     assert parse_log_entry(entry) == {
         "domain": "xiaomi_miio",
         "name": "homeassistant.components.xiaomi_miio",
-        "short": "Unexpected error fetching zhimi.airpurifier.ma2 data: byte ...",
+        "short": "byte indices must be integers or slices, not str",
     }
 
 
@@ -96,7 +96,7 @@ def test_zeroconf():
     assert parse_log_entry(entry) == {
         "name": "zeroconf",
         "package": "zeroconf",
-        "short": "Error with socket 25 (('::', 5353, 0, 0))): [Errno 101] Net...",
+        "short": "[Errno 101] Network unreachable",
     }
 
 
@@ -146,7 +146,7 @@ def test_dataplicity():
     }
 
 
-def test_philips():
+def test_websocket_philips():
     entry = {
         "name": "homeassistant.components.websocket_api.http.connection",
         "message": ["[139961207849792] TV is not available"],
@@ -160,5 +160,25 @@ def test_philips():
     assert parse_log_entry(entry) == {
         "domain": "philips_js",
         "name": "homeassistant.components.websocket_api.http.connection",
+        "short": "TV is not available",
+    }
+
+
+def test_service_call_philips():
+    entry = {
+        "name": "homeassistant.core",
+        "message": [
+            "Error executing service: <ServiceCall light.turn_off (c:xxx): entity_id=['light.philips_tv_ambilight'], params=>"
+        ],
+        "level": "ERROR",
+        "source": ["core.py", 2559],
+        "timestamp": 1712848158.1559181,
+        "exception": 'Traceback (most recent call last):\n  File "/usr/src/homeassistant/homeassistant/core.py", line 2559, in _run_service_call_catch_exceptions\n    await coro_or_task\n  File "/usr/src/homeassistant/homeassistant/core.py", line 2580, in _execute_service\n    return await target(service_call)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/src/homeassistant/homeassistant/helpers/service.py", line 971, in entity_service_call\n    single_response = await _handle_entity_call(\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/src/homeassistant/homeassistant/helpers/service.py", line 1043, in _handle_entity_call\n    result = await task\n             ^^^^^^^^^^\n  File "/usr/src/homeassistant/homeassistant/components/light/__init__.py", line 642, in async_handle_light_off_service\n    await light.async_turn_off(**filter_turn_off_params(light, params))\n  File "/usr/src/homeassistant/homeassistant/components/philips_js/light.py", line 374, in async_turn_off\n    raise HomeAssistantError("TV is not available")\nhomeassistant.exceptions.HomeAssistantError: TV is not available\n',
+        "count": 1,
+        "first_occurred": 1712848158.1559181,
+    }
+    assert parse_log_entry(entry) == {
+        "domain": "philips_js",
+        "name": "homeassistant.core",
         "short": "TV is not available",
     }

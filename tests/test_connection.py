@@ -137,3 +137,26 @@ def test_pychromecast():
         "package": "pychromecast",
         "short": "Error connect to 192.168.1.123",
     }
+
+
+def test_service_call_yeelight():
+    entry = {
+        "name": "homeassistant.core",
+        "message": [
+            "Error executing service: <ServiceCall light.turn_on (c:xxx): entity_id=['light.kids_lamp'], params=transition=45.0, brightness=255, color_temp=257, color_temp_kelvin=3885>",
+            "Error executing service: <ServiceCall light.turn_off (c:xxx): entity_id=['light.kids_lamp'], params=>",
+        ],
+        "level": "ERROR",
+        "source": ["core.py", 2559],
+        "timestamp": 1712848188.1388695,
+        "exception": 'Traceback (most recent call last):\n  File "/usr/local/lib/python3.12/site-packages/yeelight/aio.py", line 101, in async_send_command\n    response = await future\n               ^^^^^^^^^^^^\nasyncio.exceptions.CancelledError\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File "/usr/src/homeassistant/homeassistant/components/yeelight/light.py", line 257, in _async_wrap\n    return await func(self, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/src/homeassistant/homeassistant/components/yeelight/light.py", line 705, in async_set_colortemp\n    await self._bulb.async_set_color_temp(\n  File "/usr/local/lib/python3.12/site-packages/yeelight/aio.py", line 45, in wrapper\n    cmd = await self.async_send_command(\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/local/lib/python3.12/site-packages/yeelight/aio.py", line 100, in async_send_command\n    async with asyncio_timeout(TIMEOUT):\n  File "/usr/local/lib/python3.12/asyncio/timeouts.py", line 115, in __aexit__\n    raise TimeoutError from exc_val\nTimeoutError\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File "/usr/src/homeassistant/homeassistant/core.py", line 2559, in _run_service_call_catch_exceptions\n    await coro_or_task\n  File "/usr/src/homeassistant/homeassistant/core.py", line 2580, in _execute_service\n    return await target(service_call)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/config/custom_components/adaptive_lighting/hass_utils.py", line 62, in service_func_proxy\n    await existing_service.job.target(call)\n  File "/usr/src/homeassistant/homeassistant/helpers/service.py", line 971, in entity_service_call\n    single_response = await _handle_entity_call(\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/src/homeassistant/homeassistant/helpers/service.py", line 1043, in _handle_entity_call\n    result = await task\n             ^^^^^^^^^^\n  File "/usr/src/homeassistant/homeassistant/components/light/__init__.py", line 631, in async_handle_light_on_service\n    await light.async_turn_on(**filter_turn_on_params(light, params))\n  File "/usr/src/homeassistant/homeassistant/components/yeelight/light.py", line 803, in async_turn_on\n    await self.async_set_colortemp(colortemp, duration)\n  File "/usr/src/homeassistant/homeassistant/components/yeelight/light.py", line 263, in _async_wrap\n    raise HomeAssistantError(\nhomeassistant.exceptions.HomeAssistantError: Timed out when calling async_set_colortemp for bulb Yeelight Ceiling6 0x8xxxxxx at 192.168.1.123: <class \'TimeoutError\'>\n',
+        "count": 2,
+        "first_occurred": 1712848151.0284944,
+    }
+    assert parse_log_entry(entry) == {
+        "category": "connection",
+        "domain": "adaptive_lighting",
+        "host": "192.168.1.123",
+        "name": "homeassistant.core",
+        "short": "Error connect to 192.168.1.123",
+    }
