@@ -4,7 +4,7 @@ import traceback
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
 
 from . import DOMAIN
 
@@ -16,15 +16,22 @@ async def async_setup_entry(
 
     # import log records from global system_log
     if system_log := hass.data["system_log"]:
-        for entry in system_log.records.values():
-            entry = entry.to_dict()
-            record = convert_log_entry_to_record(entry)
-            smart_log.emit(record, entry["count"])
+        for log_entry in system_log.records.values():
+            dict_entry = log_entry.to_dict()
+            record = convert_log_entry_to_record(dict_entry)
+            smart_log.emit(record, dict_entry["count"])
 
     data = hass.data.setdefault(DOMAIN, {})
     data["smart_log"] = smart_log
 
     async_add_entities([smart_log], False)
+
+    async def send_command(call: ServiceCall):
+        for dict_entry in call.data["system_log"]:
+            record = convert_log_entry_to_record(dict_entry)
+            smart_log.emit(record, dict_entry["count"])
+
+    hass.services.async_register(DOMAIN, "send_command", send_command)
 
 
 class SmartLog(SensorEntity):
