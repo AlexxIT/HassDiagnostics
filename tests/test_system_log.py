@@ -257,3 +257,59 @@ def test_setup_matrix():
         "name": "homeassistant.setup",
         "short": "KeyError: 'matrix'",
     }
+
+
+def test_xbox():
+    entry = {
+        "name": "homeassistant.config_entries",
+        "message": ["Error setting up entry Home Assistant Cloud for xbox"],
+        "level": "ERROR",
+        "source": ["config_entries.py", 551],
+        "timestamp": 1712919761.4121366,
+        "exception": 'Traceback (most recent call last):\n  File "/usr/src/homeassistant/homeassistant/config_entries.py", line 551, in async_setup\n    result = await component.async_setup_entry(hass, self)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/src/homeassistant/homeassistant/components/xbox/__init__.py", line 61, in async_setup_entry\n    consoles: SmartglassConsoleList = await client.smartglass.get_console_list()\n                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/local/lib/python3.12/site-packages/xbox/webapi/api/provider/smartglass/__init__.py", line 54, in get_console_list\n    resp = await self._fetch_list("devices", params, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/local/lib/python3.12/site-packages/xbox/webapi/api/provider/smartglass/__init__.py", line 359, in _fetch_list\n    resp = await self.client.session.get(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/local/lib/python3.12/site-packages/xbox/webapi/api/client.py", line 86, in get\n    return await self.request(hdrs.METH_GET, url, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/local/lib/python3.12/site-packages/xbox/webapi/api/client.py", line 60, in request\n    await self._auth_mgr.refresh_tokens()\n  File "/usr/src/homeassistant/homeassistant/components/xbox/api.py", line 28, in refresh_tokens\n    await self._oauth_session.async_ensure_token_valid()\n  File "/usr/src/homeassistant/homeassistant/helpers/config_entry_oauth2_flow.py", line 523, in async_ensure_token_valid\n    new_token = await self.implementation.async_refresh_token(self.token)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/src/homeassistant/homeassistant/helpers/config_entry_oauth2_flow.py", line 94, in async_refresh_token\n    new_token = await self._async_refresh_token(token)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/src/homeassistant/homeassistant/components/cloud/account_link.py", line 140, in _async_refresh_token\n    new_token = await account_link.async_fetch_access_token(\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/local/lib/python3.12/site-packages/hass_nabucasa/account_link.py", line 121, in async_fetch_access_token\n    resp.raise_for_status()\n  File "/usr/local/lib/python3.12/site-packages/aiohttp/client_reqrep.py", line 1060, in raise_for_status\n    raise ClientResponseError(\naiohttp.client_exceptions.ClientResponseError: 500, message=\'Internal Server Error\', url=URL(\'https://account-link.nabucasa.com/refresh_token/xbox\')\n',
+        "count": 1,
+        "first_occurred": 1712919761.4121366,
+    }
+    assert parse_log_entry(entry) == {
+        "domain": "cloud",
+        "name": "homeassistant.config_entries",
+        "short": "ClientResponseError: 500, message='Internal Server Error', ...",
+    }
+
+    entry = {
+        "name": "homeassistant.util.logging",
+        "message": [
+            "Exception in <function _process_media_source_platform at 0x7f634c77bb00> when processing platform 'media_source': (<HomeAssistant NOT_RUNNING>, 'xbox', <module 'homeassistant.components.xbox.media_source' from '/usr/src/homeassistant/homeassistant/components/xbox/media_source.py'>)\nTraceback (most recent call last):\n  File \"/usr/src/homeassistant/homeassistant/components/media_source/__init__.py\", line 93, in _process_media_source_platform\n    hass.data[DOMAIN][domain] = await platform.async_get_media_source(hass)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/src/homeassistant/homeassistant/components/xbox/media_source.py\", line 42, in async_get_media_source\n    client = hass.data[DOMAIN][entry.entry_id][\"client\"]\n             ~~~~~~~~~^^^^^^^^\nKeyError: 'xbox'\n"
+        ],
+        "level": "ERROR",
+        "source": ["util/logging.py", 103],
+        "timestamp": 1712919762.2007668,
+        "exception": "",
+        "count": 1,
+        "first_occurred": 1712919762.2007668,
+    }
+    assert parse_log_entry(entry) == {
+        "domain": "xbox",
+        "name": "homeassistant.util.logging",
+        "short": "KeyError: 'xbox'",
+    }
+
+
+def test_xiaomi_miot():
+    entry = {
+        "name": "homeassistant.components.sensor",
+        "message": [
+            "Platform xiaomi_miot does not generate unique IDs. ID xxx-magnet_sensor-2.illumination-1 is already used by sensor.isa_dw2hl_31cf_illumination - ignoring sensor.isa_dw2hl_31cf_illumination",
+        ],
+        "level": "ERROR",
+        "source": ["helpers/entity_platform.py", 744],
+        "timestamp": 1712919784.493696,
+        "exception": "",
+        "count": 11,
+        "first_occurred": 1712919784.3675585,
+    }
+    assert parse_log_entry(entry) == {
+        "domain": "xiaomi_miot",
+        "name": "homeassistant.components.sensor",
+        "short": "Platform xiaomi_miot does not generate unique IDs. ID xxx-m...",
+    }

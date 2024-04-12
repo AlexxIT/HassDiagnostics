@@ -39,3 +39,24 @@ def test_took_longer():
         "name": "homeassistant.components.media_player",
         "short": "Updating samsungtv media_player took longer than the schedu...",
     }
+
+
+def test_waiting():
+    entry = {
+        "name": "homeassistant.bootstrap",
+        "message": [
+            "Waiting on integrations to complete setup: {('synology_dsm', 'xxx'): 36496.706350292}"
+        ],
+        "level": "WARNING",
+        "source": ["bootstrap.py", 661],
+        "timestamp": 1712919870.6138513,
+        "exception": "",
+        "count": 2,
+        "first_occurred": 1712919810.5630677,
+    }
+    assert parse_log_entry(entry) == {
+        "category": "performance",
+        "domain": "synology_dsm",
+        "name": "homeassistant.bootstrap",
+        "short": "Waiting on integrations to complete setup: {('synology_dsm'...",
+    }

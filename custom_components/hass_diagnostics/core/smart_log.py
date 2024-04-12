@@ -5,9 +5,6 @@ from logging import LogRecord
 RE_CUSTOM_DOMAIN = re.compile(r"\bcustom_components[/.]([0-9a-z_]+)")
 RE_DOMAIN = re.compile(r"\bcomponents[/.]([0-9a-z_]+)")
 RE_DEPRECATED = re.compile(r"\b(is deprecated|is a deprecated|will stop working)\b")
-RE_CONST_CUSTOM = re.compile(r"([^']+)' custom integration$")
-RE_SETUP = re.compile(r"^Setup of ([^ ]+) is taking over")
-RE_UPDATING = re.compile(r"^Updating ([^ ]+) [^ ]+ took longer than")
 RE_PACKAGE = re.compile(r"/site-packages/([^/]+)")
 RE_TEMPLATE = re.compile(r"Template<template=\((.+?)\) renders=", flags=re.DOTALL)
 RE_CONNECT_TO_HOST = re.compile(r"Cannot connect to host ([^ :]+)")
@@ -15,8 +12,15 @@ RE_CONNECT = re.compile(
     r"\b(aiohttp|connect|connection|disconnected|socket|timed out)\b",
     flags=re.IGNORECASE,
 )
-RE_LOGIN = re.compile(r"^Login attempt or request [^(]+\(([^)]+)")
 RE_LAST_LINE = re.compile(r"([A-Za-z]+Error: [^\n]+)\n$")
+
+# prefixes
+RE_LOGIN = re.compile(r"^Login attempt or request [^(]+\(([^)]+)")
+RE_PLATFORM = re.compile(r"^Platform ([^ ]+) does not generate unique IDs")
+RE_SETUP = re.compile(r"^Setup of ([^ ]+) is taking over")
+RE_UPDATING = re.compile(r"^Updating ([^ ]+) [^ ]+ took longer than")
+RE_WAITING = re.compile(r"Waiting on integrations [^']+'([^']+)")
+RE_WAS_USED = re.compile(r"[A-Z_]+ was used from ([^,]+)")
 
 
 def parse_log_record(record: LogRecord) -> dict:
@@ -38,7 +42,7 @@ def parse_log_record(record: LogRecord) -> dict:
     if m := RE_CUSTOM_DOMAIN.search(text):
         entry["domain"] = m[1]
     elif m := RE_DOMAIN.findall(text):
-        entry["domain"] = m[-1]
+        entry["domain"] = m[-1]  # latest domain from all
 
     # package from pathname
     if m := RE_PACKAGE.search(record.pathname):
@@ -47,28 +51,33 @@ def parse_log_record(record: LogRecord) -> dict:
     if host := ip_search(message):
         entry["host"] = host
 
-    # short and category
-    if m := RE_CONNECT_TO_HOST.search(text):
+    # prefix
+    if m := RE_LOGIN.search(message):
+        entry["category"] = "login"
+        entry["host"] = m[1]
+    if m := RE_PLATFORM.search(message):
+        entry["domain"] = m[1]
+    elif m := (
+        RE_SETUP.search(message)
+        or RE_UPDATING.search(message)
+        or RE_WAITING.search(message)
+    ):
+        entry["category"] = "performance"
+        entry["domain"] = m[1]
+    elif m := RE_WAS_USED.search(message):
+        entry["category"] = "deprecated"
+        entry["domain"] = m[1]
+
+    elif m := RE_CONNECT_TO_HOST.search(text):
         entry["category"] = "connection"
         entry["host"] = m[1]
     elif RE_CONNECT.search(message) and entry.get("host"):
         entry["category"] = "connection"
     elif RE_DEPRECATED.search(message):
         entry["category"] = "deprecated"
-        if m := RE_CONST_CUSTOM.search(message):
-            entry["domain"] = m[1]
-    elif m := RE_SETUP.search(message):
-        entry["category"] = "performance"
-        entry["domain"] = m[1]
-    elif m := RE_UPDATING.search(message):
-        entry["category"] = "performance"
-        entry["domain"] = m[1]
     elif m := RE_TEMPLATE.search(message):
         entry["category"] = "template"
         short = m[1]
-    elif m := RE_LOGIN.search(message):
-        entry["category"] = "login"
-        entry["host"] = m[1]
     elif m := RE_LAST_LINE.search(text):
         short = m[1]
         if host := ip_search(short):

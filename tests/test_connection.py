@@ -224,3 +224,24 @@ def test_linkplay():
         "name": "custom_components.linkplay.media_player",
         "short": "Failed communicating with LinkPlayDevice (start) '192.168.8...",
     }
+
+
+def test_esphome():
+    entry = {
+        "name": "aioesphomeapi.reconnect_logic",
+        "message": [
+            "Can't connect to ESPHome API for zbbridge @ 192.168.88.123: Error connecting to [AddrInfo(family=<AddressFamily.AF_INET: 2>, type=<SocketKind.SOCK_STREAM: 1>, proto=6, sockaddr=IPv4Sockaddr(address='192.168.88.123', port=6053))]: [Errno 113] Connect call failed ('192.168.88.123', 6053) (SocketAPIError)",
+        ],
+        "level": "WARNING",
+        "source": ["runner.py", 189],
+        "timestamp": 1712919767.419088,
+        "exception": "",
+        "count": 4,
+        "first_occurred": 1712919767.1426528,
+    }
+    assert parse_log_entry(entry) == {
+        "category": "connection",
+        "host": "192.168.88.123",
+        "name": "aioesphomeapi.reconnect_logic",
+        "short": "Can't connect to ESPHome API for zbbridge @ 192.168.88.123:...",
+    }
