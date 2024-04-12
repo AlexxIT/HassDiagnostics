@@ -1,4 +1,4 @@
-from custom_components.hass_diagnostics.sensor import (
+from custom_components.hass_diagnostics.core.smart_log import (
     convert_log_entry_to_record,
     parse_log_record,
 )
