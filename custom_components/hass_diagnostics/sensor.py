@@ -77,9 +77,9 @@ class SmartLog(SensorEntity):
 
 RE_CUSTOM_DOMAIN = re.compile(r"\bcustom_components[/.]([0-9a-z_]+)")
 RE_DOMAIN = re.compile(r"\bcomponents[/.]([0-9a-z_]+)")
-RE_CONNECTION = re.compile(r"(disconnected|not available)", flags=re.IGNORECASE)
 RE_DEPRECATED = re.compile(r"will stop working in Home Assistant.+?[0-9.]+")
-RE_SETUP = re.compile(r"Setup of (.+?) is taking over")
+RE_SETUP = re.compile(r"^Setup of ([^ ]+) is taking over")
+RE_UPDATING = re.compile(r"^Updating ([^ ]+) [^ ]+ took longer than")
 # RE_ERROR = re.compile(r"\('(.+?)'\)")
 RE_PACKAGE = re.compile(r"/site-packages/([^/]+)")
 RE_TEMPLATE = re.compile(r"Template<template=\((.+?)\) renders=", flags=re.DOTALL)
@@ -127,6 +127,9 @@ def parse_log_record(record: logging.LogRecord) -> dict:
         entry["category"] = "deprecated"
         short = "..." + m[0]
     elif m := RE_SETUP.search(message):
+        entry["category"] = "performance"
+        entry["domain"] = m[1]
+    elif m := RE_UPDATING.search(message):
         entry["category"] = "performance"
         entry["domain"] = m[1]
     elif m := RE_TEMPLATE.search(message):
