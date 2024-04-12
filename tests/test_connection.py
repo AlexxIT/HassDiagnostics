@@ -202,3 +202,25 @@ def test_sonoff_cloud():
         "name": "custom_components.sonoff.core.ewelink.cloud",
         "short": "Cloud WS Connection error: Cannot connect to host eu-dispa....",
     }
+
+
+def test_linkplay():
+    entry = {
+        "name": "custom_components.linkplay.media_player",
+        "message": [
+            "Failed communicating with LinkPlayDevice (start) '192.168.88.123': uuid:  <class 'aiohttp.client_exceptions.ClientConnectorError'>"
+        ],
+        "level": "WARNING",
+        "source": ["custom_components/linkplay/media_player.py", 248],
+        "timestamp": 1712919760.1285965,
+        "exception": "",
+        "count": 1,
+        "first_occurred": 1712919760.1285965,
+    }
+    assert parse_log_entry(entry) == {
+        "category": "connection",
+        "domain": "linkplay",
+        "host": "192.168.88.123",
+        "name": "custom_components.linkplay.media_player",
+        "short": "Failed communicating with LinkPlayDevice (start) '192.168.8...",
+    }

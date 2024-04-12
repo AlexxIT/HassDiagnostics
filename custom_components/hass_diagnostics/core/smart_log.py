@@ -12,7 +12,8 @@ RE_PACKAGE = re.compile(r"/site-packages/([^/]+)")
 RE_TEMPLATE = re.compile(r"Template<template=\((.+?)\) renders=", flags=re.DOTALL)
 RE_CONNECT_TO_HOST = re.compile(r"Cannot connect to host ([^ :]+)")
 RE_CONNECT = re.compile(
-    r"\b(connect|connection|disconnected|socket|timed out)\b", flags=re.IGNORECASE
+    r"\b(aiohttp|connect|connection|disconnected|socket|timed out)\b",
+    flags=re.IGNORECASE,
 )
 RE_LOGIN = re.compile(r"^Login attempt or request [^(]+\(([^)]+)")
 RE_LAST_LINE = re.compile(r"([A-Za-z]+Error: [^\n]+)\n$")
