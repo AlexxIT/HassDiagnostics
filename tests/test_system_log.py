@@ -182,3 +182,39 @@ def test_service_call_philips():
         "name": "homeassistant.core",
         "short": "TV is not available",
     }
+
+
+def test_telegram_bad_gateway():
+    entry = {
+        "name": "telegram.ext.Updater",
+        "message": ["Error while getting Updates: Bad Gateway"],
+        "level": "ERROR",
+        "source": ["runner.py", 189],
+        "timestamp": 1712884285.4835799,
+        "exception": "",
+        "count": 2,
+        "first_occurred": 1712884284.3447855,
+    }
+    assert parse_log_entry(entry) == {
+        "name": "telegram.ext.Updater",
+        "short": "Error while getting Updates: Bad Gateway",
+    }
+
+    entry = {
+        "name": "telegram.ext.Updater",
+        "message": ["Exception happened while polling for updates."],
+        "level": "ERROR",
+        "source": [
+            "/usr/local/lib/python3.12/site-packages/telegram/ext/_updater.py",
+            411,
+        ],
+        "timestamp": 1712884285.4848557,
+        "exception": 'Traceback (most recent call last):\n  File "/usr/local/lib/python3.12/site-packages/telegram/ext/_updater.py", line 742, in _network_loop_retry\n    if not await do_action():\n           ^^^^^^^^^^^^^^^^^\n  File "/usr/local/lib/python3.12/site-packages/telegram/ext/_updater.py", line 736, in do_action\n    return action_cb_task.result()\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/local/lib/python3.12/site-packages/telegram/ext/_updater.py", line 387, in polling_action_cb\n    raise exc\n  File "/usr/local/lib/python3.12/site-packages/telegram/ext/_updater.py", line 376, in polling_action_cb\n    updates = await self.bot.get_updates(\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/local/lib/python3.12/site-packages/telegram/_bot.py", line 541, in decorator\n    result = await func(self, *args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/local/lib/python3.12/site-packages/telegram/_bot.py", line 4177, in get_updates\n    await self._post(\n  File "/usr/local/lib/python3.12/site-packages/telegram/_bot.py", line 629, in _post\n    return await self._do_post(\n           ^^^^^^^^^^^^^^^^^^^^\n  File "/usr/local/lib/python3.12/site-packages/telegram/_bot.py", line 657, in _do_post\n    return await request.post(\n           ^^^^^^^^^^^^^^^^^^^\n  File "/usr/local/lib/python3.12/site-packages/telegram/request/_baserequest.py", line 200, in post\n    result = await self._request_wrapper(\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/usr/local/lib/python3.12/site-packages/telegram/request/_baserequest.py", line 383, in _request_wrapper\n    raise NetworkError(description or "Bad Gateway")\ntelegram.error.NetworkError: Bad Gateway\n',
+        "count": 2,
+        "first_occurred": 1712884284.3461096,
+    }
+    assert parse_log_entry(entry) == {
+        "name": "telegram.ext.Updater",
+        "package": "telegram",
+        "short": "Bad Gateway",
+    }
