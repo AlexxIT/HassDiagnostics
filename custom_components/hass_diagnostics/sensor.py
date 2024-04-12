@@ -7,6 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 
 from . import DOMAIN
+from .core.github import github_get_link
 
 
 async def async_setup_entry(
@@ -59,9 +60,11 @@ class SmartLog(SensorEntity):
             entry.get("category"),
             entry.get("host"),
         )
-        if record := self.records.get(key):
-            record["count"] += count
+        if item := self.records.get(key):
+            item["count"] += count
         else:
+            if github := github_get_link(record):
+                entry["github"] = github
             entry["count"] = count
             self.records[key] = entry
 
