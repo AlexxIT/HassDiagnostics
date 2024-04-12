@@ -5,6 +5,7 @@ from logging import LogRecord
 RE_CUSTOM_DOMAIN = re.compile(r"\bcustom_components[/.]([0-9a-z_]+)")
 RE_DOMAIN = re.compile(r"\bcomponents[/.]([0-9a-z_]+)")
 RE_DEPRECATED = re.compile(r"will stop working in Home Assistant.+?[0-9.]+")
+RE_IS_DEPRECATED = re.compile(r"\bis deprecated\b")
 RE_SETUP = re.compile(r"^Setup of ([^ ]+) is taking over")
 RE_UPDATING = re.compile(r"^Updating ([^ ]+) [^ ]+ took longer than")
 RE_PACKAGE = re.compile(r"/site-packages/([^/]+)")
@@ -54,6 +55,8 @@ def parse_log_record(record: LogRecord) -> dict:
     elif m := RE_DEPRECATED.search(message):
         entry["category"] = "deprecated"
         short = "..." + m[0]
+    elif RE_IS_DEPRECATED.search(message):
+        entry["category"] = "deprecated"
     elif m := RE_SETUP.search(message):
         entry["category"] = "performance"
         entry["domain"] = m[1]

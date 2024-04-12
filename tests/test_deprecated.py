@@ -44,3 +44,23 @@ def test_light_deprecation():
         "name": "homeassistant.components.light",
         "short": "...will stop working in Home Assistant Core 2025.3",
     }
+
+
+def test_configuration_yaml():
+    entry = {
+        "name": "homeassistant.helpers.config_validation",
+        "message": [
+            "The 'exclude' option near /config/configuration.yaml:69 is deprecated, please remove it from your configuration"
+        ],
+        "level": "WARNING",
+        "source": ["helpers/config_validation.py", 924],
+        "timestamp": 1712919751.101808,
+        "exception": "",
+        "count": 1,
+        "first_occurred": 1712919751.101808,
+    }
+    assert parse_log_entry(entry) == {
+        "category": "deprecated",
+        "name": "homeassistant.helpers.config_validation",
+        "short": "The 'exclude' option near /config/configuration.yaml:69 is ...",
+    }
