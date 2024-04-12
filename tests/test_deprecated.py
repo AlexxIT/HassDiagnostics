@@ -18,7 +18,7 @@ def test_hacs():
         "category": "deprecated",
         "domain": "hacs",
         "name": "homeassistant.helpers.frame",
-        "short": "...will stop working in Home Assistant 2024.9",
+        "short": "Detected that custom integration 'hacs' accesses hass.compo...",
     }
 
 
@@ -42,7 +42,7 @@ def test_light_deprecation():
         "category": "deprecated",
         "domain": "sonoff",
         "name": "homeassistant.components.light",
-        "short": "...will stop working in Home Assistant Core 2025.3",
+        "short": "sonoff.xxx (<class 'custom_components.sonoff.switch.XSwitch...",
     }
 
 
@@ -63,4 +63,29 @@ def test_configuration_yaml():
         "category": "deprecated",
         "name": "homeassistant.helpers.config_validation",
         "short": "The 'exclude' option near /config/configuration.yaml:69 is ...",
+    }
+
+
+def test_const():
+    entry = {
+        "name": "homeassistant.const",
+        "message": [
+            "TEMP_CELSIUS was used from gismeteo, this is a deprecated constant which will be removed in HA Core 2025.1. Use UnitOfTemperature.CELSIUS instead, please report it to the author of the 'gismeteo' custom integration",
+            "LENGTH_KILOMETERS was used from blitzortung, this is a deprecated constant which will be removed in HA Core 2025.1. Use UnitOfLength.KILOMETERS instead, please report it to the author of the 'blitzortung' custom integration",
+            "LENGTH_MILES was used from blitzortung, this is a deprecated constant which will be removed in HA Core 2025.1. Use UnitOfLength.MILES instead, please report it to the author of the 'blitzortung' custom integration",
+            "PRESSURE_MMHG was used from gismeteo, this is a deprecated constant which will be removed in HA Core 2025.1. Use UnitOfPressure.MMHG instead, please report it to the author of the 'gismeteo' custom integration",
+            "SPEED_KILOMETERS_PER_HOUR was used from gismeteo, this is a deprecated constant which will be removed in HA Core 2025.1. Use UnitOfSpeed.KILOMETERS_PER_HOUR instead, please report it to the author of the 'gismeteo' custom integration",
+        ],
+        "level": "WARNING",
+        "source": ["helpers/deprecation.py", 206],
+        "timestamp": 1712919760.4818387,
+        "exception": "",
+        "count": 15,
+        "first_occurred": 1712919755.8094475,
+    }
+    assert parse_log_entry(entry) == {
+        "category": "deprecated",
+        "domain": "gismeteo",
+        "name": "homeassistant.const",
+        "short": "TEMP_CELSIUS was used from gismeteo, this is a deprecated c...",
     }
