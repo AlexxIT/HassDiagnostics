@@ -63,9 +63,21 @@ class SmartLog(SensorEntity):
         if item := self.records.get(key):
             item["count"] += count
         else:
+            entry["count"] = count
+            if record.exc_text:
+                entry["exception"] = record.exc_text
+            if hasattr(record, "funcName"):
+                entry["source"] = [
+                    record.pathname,
+                    record.lineno,
+                    record.processName,
+                    record.threadName,
+                    record.funcName,
+                ]
+            else:
+                entry["source"] = [record.pathname, record.lineno]
             if github := github_get_link(record):
                 entry["github"] = github
-            entry["count"] = count
             self.records[key] = entry
 
         self._attr_native_value += count

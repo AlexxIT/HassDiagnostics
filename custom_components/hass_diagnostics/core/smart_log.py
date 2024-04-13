@@ -118,6 +118,7 @@ def convert_log_entry_to_record(entry: dict):
         "levelname": entry["level"],
         "created": entry["timestamp"],
         "pathname": entry["source"][0],
+        "lineno": entry["source"][1],
         "message": entry["message"][0],
         "exc_info": entry["exception"] != "",
         "exc_text": entry["exception"],
