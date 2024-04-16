@@ -11,7 +11,7 @@
   - IP address of the device
   - link to github sources
 
-<img src="smart_log.png" width="480">
+<img src="https://raw.githubusercontent.com/AlexxIT/HassDiagnostics/master/smart_log.png" width="480">
 
 **Markdown card - version 1**
 
