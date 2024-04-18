@@ -1,4 +1,5 @@
 {
-    "name": "Hass Diagnostics",
-    "render_readme": true
+  "name": "Hass Diagnostics",
+  "homeassistant": "2023.2.0",
+  "render_readme": true
 }
