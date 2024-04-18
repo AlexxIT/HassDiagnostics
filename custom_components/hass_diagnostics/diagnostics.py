@@ -1,7 +1,9 @@
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_component import EntityComponent
 
-from . import DOMAIN
+from .core.const import SYSTEM_LOG, SETUP_TIME
+from .sensor import SmartLog, StartTime
 
 
 async def async_get_config_entry_diagnostics(
@@ -9,12 +11,17 @@ async def async_get_config_entry_diagnostics(
 ):
     info = {}
 
-    # internal system_log
-    if smart_log := hass.data.get(DOMAIN, {}).get("smart_log"):
-        info["smart_log"] = [i for i in smart_log.records.values()]
+    component: EntityComponent = hass.data["entity_components"]["sensor"]
+    for entity in component.entities:
+        if isinstance(entity, SmartLog):
+            info[entity.unique_id] = [i for i in entity.records.values()]
+        if isinstance(entity, StartTime):
+            info[entity.unique_id] = entity.native_value
+            if entity.extra_state_attributes:
+                info[SETUP_TIME] = entity.extra_state_attributes[SETUP_TIME]
 
     # global system_log
-    if system_log := hass.data["system_log"]:
-        info["system_log"] = [i.to_dict() for i in system_log.records.values()]
+    if system_log := hass.data[SYSTEM_LOG]:
+        info[SYSTEM_LOG] = [i.to_dict() for i in system_log.records.values()]
 
     return info

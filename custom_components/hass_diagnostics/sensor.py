@@ -1,10 +1,14 @@
 import logging
+from datetime import timedelta
+from typing import Iterable
 
+from homeassistant import setup
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import UnitOfTime
 from homeassistant.core import HomeAssistant, ServiceCall
 
-from . import DOMAIN
+from .core.const import DOMAIN, SMART_LOG, SYSTEM_LOG, START_TIME, SETUP_TIME
 from .core.github import github_get_link
 from .core.smart_log import convert_log_entry_to_record, parse_log_record
 
@@ -12,27 +16,23 @@ from .core.smart_log import convert_log_entry_to_record, parse_log_record
 async def async_setup_entry(
     hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities
 ):
-    smart_log = SmartLog()
+    if config_entry.options.get(SMART_LOG, True):
+        smart_log = SmartLog()
 
-    # import log records from global system_log
-    system_log = hass.data["system_log"]
-    for log_entry in system_log.records.values():
-        dict_entry = log_entry.to_dict()
-        record = convert_log_entry_to_record(dict_entry)
-        smart_log.emit(record, dict_entry["count"])
+        # import log records from global system_log
+        system_log = hass.data[SYSTEM_LOG]
+        smart_log.emit_bulk(i.to_dict() for i in system_log.records.values())
 
-    # store for diagnostics.py
-    data = hass.data.setdefault(DOMAIN, {})
-    data["smart_log"] = smart_log
+        async def send_command(call: ServiceCall):
+            smart_log.emit_bulk(call.data[SYSTEM_LOG])
 
-    async_add_entities([smart_log], False)
+        hass.services.async_register(DOMAIN, "send_command", send_command)
 
-    async def send_command(call: ServiceCall):
-        for dict_entry in call.data["system_log"]:
-            record = convert_log_entry_to_record(dict_entry)
-            smart_log.emit(record, dict_entry["count"])
+        async_add_entities([smart_log], False)
 
-    hass.services.async_register(DOMAIN, "send_command", send_command)
+    if config_entry.options.get(START_TIME, True):
+        start_time = StartTime()
+        async_add_entities([start_time], False)
 
 
 class SmartLog(SensorEntity):
@@ -42,7 +42,7 @@ class SmartLog(SensorEntity):
     _attr_native_unit_of_measurement = "items"
     _attr_should_poll = False
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_unique_id = "smart_log"
+    _attr_unique_id = SMART_LOG
     _unrecorded_attributes = {"records"}
 
     def __init__(self):
@@ -84,7 +84,59 @@ class SmartLog(SensorEntity):
         if self.hass and self.entity_id:
             self._async_write_ha_state()
 
+    def emit_bulk(self, entries: Iterable[dict]):
+        for entry in entries:
+            record = convert_log_entry_to_record(entry)
+            self.emit(record, entry["count"])
+
     @property
     def extra_state_attributes(self):
         # fix JSON serialization
         return {"records": list(self.records.values())}
+
+
+class StartTime(SensorEntity):
+    _attr_icon = "mdi:home-assistant"
+    _attr_name = "Start Time"
+    _attr_should_poll = False
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_unit_of_measurement = UnitOfTime.SECONDS
+    _attr_unique_id = START_TIME
+    _unrecorded_attributes = {"setup_time"}
+
+    def __init__(self):
+        # hijack logger.info func because log level can be disabled
+        logger = logging.getLogger("homeassistant.bootstrap")
+        self.logger_info = logger.info
+        logger.info = self.info
+
+    def info(self, msg: str, *args):
+        try:
+            if msg == "Home Assistant initialized in %.2fs":
+                self.internal_update(args[0])
+        except:
+            pass
+
+        self.logger_info(msg, *args)
+
+    def internal_update(self, state: float):
+        if hasattr(setup, "async_get_setup_timings"):
+            # Hass 2024.4+
+            setup_time: dict[str, float] = setup.async_get_setup_timings(self.hass)
+        else:
+            setup_time: dict[str, float] = self.hass.data[SETUP_TIME]
+            setup_time = setup_time.copy()  # protect original dict from changing
+
+        for k, v in setup_time.items():
+            if isinstance(v, float):  # Hass 2024.3+
+                setup_time[k] = round(v, 2)
+            elif isinstance(v, timedelta):  # before Hass 2024.3
+                setup_time[k] = round(v.total_seconds(), 2)
+
+        setup_time = dict(
+            sorted(setup_time.items(), key=lambda kv: kv[1], reverse=True)
+        )
+
+        self._attr_extra_state_attributes = {SETUP_TIME: setup_time}
+        self._attr_native_value = round(state, 2)
+        self.async_write_ha_state()
