@@ -98,9 +98,9 @@ class SmartLog(SensorEntity):
 class StartTime(SensorEntity):
     _attr_icon = "mdi:home-assistant"
     _attr_name = "Start Time"
+    _attr_native_unit_of_measurement = UnitOfTime.SECONDS
     _attr_should_poll = False
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_unit_of_measurement = UnitOfTime.SECONDS
     _attr_unique_id = START_TIME
     _unrecorded_attributes = {"setup_time"}
 
