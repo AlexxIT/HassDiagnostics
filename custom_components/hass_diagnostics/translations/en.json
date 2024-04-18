@@ -1,4 +1,27 @@
 {
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Already configured. Only a single configuration possible."
+    },
+    "step": {
+      "user": {
+        "data": {
+          "smart_log": "Smart Log",
+          "start_time": "Start Time"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "smart_log": "Smart Log",
+          "start_time": "Start Time"
+        }
+      }
+    }
+  },
   "services": {
     "send_command": {
       "name": "Send command",
