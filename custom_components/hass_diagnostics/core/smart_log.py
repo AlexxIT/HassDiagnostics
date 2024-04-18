@@ -56,7 +56,7 @@ def parse_log_record(record: LogRecord) -> dict:
     if m := RE_LOGIN.search(message):
         entry["category"] = "login"
         entry["host"] = m[1]
-    if m := RE_PLATFORM.search(message):
+    elif m := RE_PLATFORM.search(message):
         entry["domain"] = m[1]
     elif m := (
         RE_SETUP.search(message)
@@ -68,7 +68,6 @@ def parse_log_record(record: LogRecord) -> dict:
     elif m := RE_WAS_USED.search(message):
         entry["category"] = "deprecated"
         entry["domain"] = m[1]
-
     elif m := RE_CONNECT_TO_HOST.search(text):
         entry["category"] = "connection"
         entry["host"] = m[1]
