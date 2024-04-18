@@ -25,7 +25,13 @@ RE_WAS_USED = re.compile(r"[A-Z_]+ was used from ([^,]+)")
 
 
 def parse_log_record(record: LogRecord) -> dict:
-    message = short = record.message or record.getMessage()
+    if hasattr(record, "message"):
+        message = record.message
+    else:
+        try:
+            message = record.getMessage()
+        except:
+            message = record.msg
 
     # base info
     entry = {
@@ -51,6 +57,8 @@ def parse_log_record(record: LogRecord) -> dict:
 
     if host := ip_search(message):
         entry["host"] = host
+
+    short = message
 
     # prefix
     if m := RE_LOGIN.search(message):
