@@ -11,6 +11,10 @@ async def async_get_config_entry_diagnostics(
 ):
     info = {}
 
+    # global system_log
+    if system_log := hass.data[SYSTEM_LOG]:
+        info[SYSTEM_LOG] = [i.to_dict() for i in system_log.records.values()]
+
     component: EntityComponent = hass.data["entity_components"]["sensor"]
     for entity in component.entities:
         if isinstance(entity, SmartLog):
@@ -19,9 +23,5 @@ async def async_get_config_entry_diagnostics(
             info[entity.unique_id] = entity.native_value
             if entity.extra_state_attributes:
                 info[SETUP_TIME] = entity.extra_state_attributes[SETUP_TIME]
-
-    # global system_log
-    if system_log := hass.data[SYSTEM_LOG]:
-        info[SYSTEM_LOG] = [i.to_dict() for i in system_log.records.values()]
 
     return info
