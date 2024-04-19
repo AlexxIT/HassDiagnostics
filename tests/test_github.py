@@ -13,11 +13,9 @@ def test_homeassistant():
         "pathname": "/usr/src/homeassistant/homeassistant/components/yeelight/light.py",
         "lineno": 257,
     }
-    url = fake_github_get_link(entry)
-    assert (
-        url
-        == f"https://github.com/home-assistant/core/blob/{__version__}/homeassistant/components/yeelight/light.py#L257"
-    )
+    actual = fake_github_get_link(entry)
+    expected = f"https://github.com/home-assistant/core/blob/{__version__}/homeassistant/components/yeelight/light.py#L257"
+    assert actual == expected
 
 
 def test_adaptive_lighting():
@@ -26,8 +24,17 @@ def test_adaptive_lighting():
         "lineno": 62,
         "funcName": "service_func_proxy",
     }
-    url = fake_github_get_link(entry)
-    assert (
-        url
-        == "https://github.com/search?q=path%3Acustom_components%2Fadaptive_lighting%2Fhass_utils.py+service_func_proxy&type=code#L62"
-    )
+    actual = fake_github_get_link(entry)
+    expected = "https://github.com/search?q=path%3Acustom_components%2Fadaptive_lighting%2Fhass_utils.py+service_func_proxy&type=code#L62"
+    assert actual == expected
+
+
+def test_pychromecast():
+    entry = {
+        "pathname": "/usr/local/lib/python3.12/site-packages/pychromecast/dial.py",
+        "lineno": 159,
+        "funcName": "get_cast_type",
+    }
+    actual = fake_github_get_link(entry)
+    expected = "https://github.com/search?q=path%3Apychromecast%2Fdial.py+get_cast_type&type=code#L159"
+    assert actual == expected
