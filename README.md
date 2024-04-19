@@ -43,11 +43,9 @@ Creates a sensor whose data can be displayed with a [Markdown card](https://www.
   <b>{{i.get('domain') or i.get('package') or i.name}}</b> ({{i.count}}) {{i.get('category','')}} {{i.get('host','')}}
   <br>&nbsp; &nbsp;<i>{{i.short}}</i>
 </summary>
-<table>
-  <tr><td><b>{{i.name}}</b></td></tr>
-  <tr><td>{{i.message|replace('\n',' ')|regex_replace('(http[^\s]+)', '<a href="\\1">\\1</a>')}}</td></tr>
-  <tr><td>{{i.source|join(', ')}}{{', <a href="%s">github</a>'%i.github if 'github' in i}}</td></tr>
-</table>
+<div><b>{{i.name}}</b></div>
+<div>{{i.message|replace('\n',' ')|regex_replace('(http[^\s]+)', '<a href="\\1">\\1</a>')}}</div>
+<div>{{i.source|join(', ')}}{{', <a href="%s">github</a>'%i.github if 'github' in i}}</div>
 {{'<pre>'+i.exception+'</pre>' if 'exception' in i}}
 </details>
 
