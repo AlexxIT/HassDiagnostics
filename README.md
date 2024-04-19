@@ -36,7 +36,7 @@ Creates a sensor whose data can be displayed with a [Markdown card](https://www.
 ```markdown
 [diagnostics](/config/integrations/integration/hass_diagnostics) | [log](/config/logs) | total: {{ states('sensor.smart_log') }} items
 
-{% for i in state_attr('sensor.smart_log', 'records') -%}
+{% for i in state_attr('sensor.smart_log', 'records') or '' -%}
 ---
 <details>
 <summary>
