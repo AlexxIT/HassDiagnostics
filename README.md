@@ -45,7 +45,7 @@ Creates a sensor whose data can be displayed with a [Markdown card](https://www.
 </summary>
 <table>
   <tr><td><b>{{i.name}}</b></td></tr>
-  <tr><td>{{i.message|replace('\n',' ')}}</td></tr>
+  <tr><td>{{i.message|replace('\n',' ')|regex_replace('(http[^\s]+)', '<a href="\\1">\\1</a>')}}</td></tr>
   <tr><td>{{i.source|join(', ')}}{{', <a href="%s">github</a>'%i.github if 'github' in i}}</td></tr>
 </table>
 {{'<pre>'+i.exception+'</pre>' if 'exception' in i}}
