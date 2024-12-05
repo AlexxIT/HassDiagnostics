@@ -82,7 +82,7 @@ class SmartLog(SensorEntity):
 
         self._attr_native_value += count
         if self.hass and self.entity_id:
-            self._async_write_ha_state()
+            self.schedule_update_ha_state()
 
     def emit_bulk(self, entries: Iterable[dict]):
         for entry in entries:
@@ -139,4 +139,4 @@ class StartTime(SensorEntity):
 
         self._attr_extra_state_attributes = {SETUP_TIME: setup_time}
         self._attr_native_value = round(state, 2)
-        self.async_write_ha_state()
+        self.schedule_update_ha_state()
