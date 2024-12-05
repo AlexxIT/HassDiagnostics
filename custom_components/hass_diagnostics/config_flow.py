@@ -2,7 +2,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.core import callback
 
-from .core.const import DOMAIN, SMART_LOG, START_TIME
+from .core.const import *
 
 
 class FlowHandler(ConfigFlow, domain=DOMAIN):
@@ -46,6 +46,7 @@ def data_schema(defaults=None) -> vol.Schema:
     schema = {
         vol.Required(SMART_LOG, default=True): bool,
         vol.Required(START_TIME, default=True): bool,
+        vol.Required(UNSAFE_STATE, default=True): bool,
     }
     if defaults:
         for key in schema:

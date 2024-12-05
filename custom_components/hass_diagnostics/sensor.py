@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import timedelta
 from typing import Iterable
@@ -5,10 +6,10 @@ from typing import Iterable
 from homeassistant import setup
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfTime
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.const import UnitOfTime, EVENT_STATE_CHANGED
+from homeassistant.core import HomeAssistant, ServiceCall, Event
 
-from .core.const import DOMAIN, SMART_LOG, SYSTEM_LOG, START_TIME, SETUP_TIME
+from .core.const import *
 from .core.github import github_get_link
 from .core.smart_log import convert_log_entry_to_record, parse_log_record
 
@@ -31,8 +32,10 @@ async def async_setup_entry(
         async_add_entities([smart_log], False)
 
     if config_entry.options.get(START_TIME, True):
-        start_time = StartTime()
-        async_add_entities([start_time], False)
+        async_add_entities([StartTime()], False)
+
+    if config_entry.options.get(UNSAFE_STATE, True):
+        async_add_entities([UnsafeState()], False)
 
 
 class SmartLog(SensorEntity):
@@ -140,3 +143,31 @@ class StartTime(SensorEntity):
         self._attr_extra_state_attributes = {SETUP_TIME: setup_time}
         self._attr_native_value = round(state, 2)
         self.schedule_update_ha_state()
+
+
+class UnsafeState(SensorEntity):
+    _attr_icon = "mdi:alert-circle"
+    _attr_name = "Unsafe State"
+    _attr_native_value = 0
+    _attr_native_unit_of_measurement = "items"
+    _attr_should_poll = False
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_unique_id = UNSAFE_STATE
+    _unrecorded_attributes = {"events"}
+
+    def __init__(self):
+        self.events: list[dict] = []
+        self._attr_extra_state_attributes = {"events": self.events}
+
+    async def state_changed(self, event: Event):
+        try:
+            _ = asyncio.get_running_loop()
+        except RuntimeError:
+            if event.data not in self.events:
+                self.events.append(event.data)
+            self._attr_native_value += 1
+            self.schedule_update_ha_state()
+
+    async def async_added_to_hass(self) -> None:
+        remove = self.hass.bus.async_listen(EVENT_STATE_CHANGED, self.state_changed)
+        self.async_on_remove(remove)
