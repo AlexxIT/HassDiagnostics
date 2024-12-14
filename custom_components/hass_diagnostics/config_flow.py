@@ -29,16 +29,16 @@ class FlowHandler(ConfigFlow, domain=DOMAIN):
 # noinspection PyUnusedLocal
 class OptionsFlowHandler(OptionsFlow):
     def __init__(self, config_entry: ConfigEntry):
-        self.config_entry = config_entry
+        self._config_entry = config_entry
 
     async def async_step_init(self, user_input: dict = None):
         if user_input:
             self.hass.async_create_task(
-                self.hass.config_entries.async_reload(self.config_entry.entry_id)
+                self.hass.config_entries.async_reload(self._config_entry.entry_id)
             )
             return self.async_create_entry(title="", data=user_input)
 
-        data = data_schema(self.config_entry.options)
+        data = data_schema(self._config_entry.options)
         return self.async_show_form(step_id="init", data_schema=data)
 
 
