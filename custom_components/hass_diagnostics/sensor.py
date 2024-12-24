@@ -6,8 +6,8 @@ from typing import Iterable
 from homeassistant import setup
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfTime, EVENT_STATE_CHANGED
-from homeassistant.core import HomeAssistant, ServiceCall, Event
+from homeassistant.const import EVENT_STATE_CHANGED, UnitOfTime
+from homeassistant.core import Event, HomeAssistant, ServiceCall
 
 from .core.const import *
 from .core.github import github_get_link

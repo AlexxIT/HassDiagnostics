@@ -2,7 +2,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_component import EntityComponent
 
-from .core.const import SYSTEM_LOG, SETUP_TIME
+from .core.const import SETUP_TIME, SYSTEM_LOG
 from .sensor import SmartLog, StartTime
 
 
